@@ -4,8 +4,13 @@ import Link from "next/link"
 import { getProductById } from "@/lib/data"
 import { notFound } from "next/navigation"
 
-// Eliminamos la interfaz ProductDetailPageProps y definimos el tipo directamente en la función
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+type ProductDetailPageProps = {
+  params: {
+    id: string
+  }
+}
+
+export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const productId = Number.parseInt(params.id)
   const product = await getProductById(productId)
 
