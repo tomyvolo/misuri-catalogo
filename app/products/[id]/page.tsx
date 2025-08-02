@@ -1,18 +1,13 @@
 import type React from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { getProductById } from "@/lib/data" // Updated import
+import { getProductById } from "@/lib/data"
 import { notFound } from "next/navigation"
 
-interface ProductDetailPageProps {
-  params: {
-    id: string
-  }
-}
-
-export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
+// Eliminamos la interfaz ProductDetailPageProps y definimos el tipo directamente en la función
+export default async function ProductDetailPage({ params }: { params: { id: string } }) {
   const productId = Number.parseInt(params.id)
-  const product = await getProductById(productId) // Fetch from Supabase
+  const product = await getProductById(productId)
 
   if (!product) {
     notFound()
@@ -32,7 +27,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       <div className="grid gap-8 md:grid-cols-2 lg:gap-12">
         <div className="flex items-center justify-center">
           <Image
-            src={product.image_url || "/placeholder.svg"} // Use image_url
+            src={product.image_url || "/placeholder.svg"}
             alt={product.name}
             width={500}
             height={500}
@@ -54,7 +49,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
             </div>
             <div>
               <h2 className="text-lg font-semibold">Talles disponibles</h2>
-              <p className="text-muted-foreground">{product.size}</p> {/* Use product.size */}
+              <p className="text-muted-foreground">{product.size}</p>
             </div>
             <div>
               <h2 className="text-lg font-semibold">Información del producto</h2>
