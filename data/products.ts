@@ -1,4 +1,3 @@
-// data/products.ts
 import type { Product, Category } from "@/types/product"
 
 // IMPORTANTE: Reemplaza esta URL con la URL CSV de tu Google Sheet publicada.
@@ -9,7 +8,7 @@ import type { Product, Category } from "@/types/product"
 // 4. Selecciona "Valores separados por comas (.csv)" para el formato.
 // 5. Copia la URL generada.
 const GOOGLE_SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfjQvKTAreSEkz5U9YEvH1alcZ8sYX4-FGe2KCfOxK360LDeen34Y1n_pUzQjmBjuyqTAQkAZnJsib/pub?output=csv" // <-- ¡REEMPLAZA ESTA URL!
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_YOUR_SHEET_ID_HERE/pub?gid=0&single=true&output=csv" // <-- ¡REEMPLAZA ESTA URL CON LA TUYA!
 
 let cachedProducts: Product[] | null = null
 
@@ -29,19 +28,13 @@ async function fetchProductsFromSheet(): Promise<Product[]> {
     const lines = csvText.split("\n").filter((line) => line.trim() !== "")
     if (lines.length === 0) return []
 
-    // Asumimos el orden de las columnas: id, name, price, category, description, size, image_url
-    // La cabecera no se usa para el mapeo directo, sino para entender el orden.
-    // const headers = lines[0].split(",").map((h) => h.trim().toLowerCase()) // No es necesario si parseamos por posición
-
     const productsData: Product[] = lines
       .slice(1)
       .map((line) => {
-        // Un parseo más robusto para manejar comas dentro del campo 'size'
-        // Asumimos que 'image_url' es siempre el último campo y 'size' es el penúltimo
         const parts = line.split(",")
         if (parts.length < 7) {
           console.warn("Skipping malformed CSV line:", line)
-          return null // Saltar líneas que no tienen suficientes partes
+          return null
         }
 
         const id = Number.parseInt(parts[0].trim(), 10)
@@ -50,14 +43,12 @@ async function fetchProductsFromSheet(): Promise<Product[]> {
         const category = parts[3].trim()
         const description = parts[4].trim()
 
-        // El campo 'size' puede contener comas, así que unimos las partes intermedias
-        // desde la posición 5 hasta la penúltima (excluyendo la última que es image_url)
         const size = parts
           .slice(5, parts.length - 1)
           .join(",")
           .trim()
 
-        const rawImageUrl = parts[parts.length - 1].trim() // La última parte es image_url
+        const rawImageUrl = parts[parts.length - 1].trim()
         const imageUrl =
           rawImageUrl.startsWith("http://") || rawImageUrl.startsWith("https://") || rawImageUrl.startsWith("/")
             ? rawImageUrl
@@ -73,7 +64,6 @@ async function fetchProductsFromSheet(): Promise<Product[]> {
           image_url: imageUrl,
         }
 
-        // Validación básica para asegurar que todos los campos requeridos estén presentes
         if (
           product.id &&
           product.name &&
@@ -85,7 +75,7 @@ async function fetchProductsFromSheet(): Promise<Product[]> {
         ) {
           return product as Product
         }
-        return null // O lanzar un error para filas inválidas
+        return null
       })
       .filter((p) => p !== null) as Product[]
 

@@ -4,18 +4,9 @@ import Link from "next/link"
 import { getProductById } from "@/data/products"
 import { notFound } from "next/navigation"
 
-// Definimos un tipo explícito para las props de la página
-type ProductDetailPageProps = {
-  params: {
-    id: string
-  }
-  // Aunque no uses searchParams, incluirlo puede ayudar a satisfacer la restricción de PageProps
-  searchParams?: { [key: string]: string | string[] | undefined }
-}
-
-export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
-  // Await params antes de desestructurarlo
-  const { id } = await params
+// Definimos el tipo de los parámetros directamente en la función
+export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params // No es necesario 'await params' aquí, params es un objeto directo
   const productId = Number.parseInt(id)
   const product = await getProductById(productId)
 
