@@ -1,19 +1,37 @@
-import { getProducts } from "@/data/products" // Updated import to data/products
+import { getProductsByCategory, getCategories } from "@/data/products"
 import { ProductCard } from "@/components/product-card"
+import { notFound } from "next/navigation"
 
-export default async function AllProductsPage() {
-  const allProducts = await getProducts()
-  const totalProducts = allProducts.length
+// Tipamos params como una Promesa, según el error de Vercel
+export default async function CategoryProductsPage({ params }: { params: Promise<{ categorySlug: string }> }) {
+  // Resolvemos la promesa de params
+  const resolvedParams = await params
+  const { categorySlug } = resolvedParams
+
+  const categories = await getCategories()
+  const category = categories.find((cat) => cat.slug === categorySlug)
+
+  if (!category || category.slug === "all") {
+    notFound()
+  }
+
+  const filteredProducts = await getProductsByCategory(categorySlug)
+  const totalProducts = filteredProducts.length
 
   return (
     <div className="container px-4 py-8 md:px-6 lg:py-12">
       <div className="mb-8 space-y-2">
-        <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl">Misuri - Todos los Productos</h1>
-        <p className="text-muted-foreground">Descubre toda nuestra colección</p>
-        <p className="text-sm text-muted-foreground">{totalProducts} productos disponibles</p>
+        <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl">{category.name}</h1>
+        <p className="text-muted-foreground">
+          {/* You might want to store these descriptions in the DB or a separate config */}
+          {category.slug === "remeras" && "Remeras cómodas y con estilo para tu día a día"}
+          {category.slug === "buzos" && "Buzos cómodos y modernos para todas las ocasiones"}
+          {category.slug === "pantalones" && "Pantalones versátiles para tu día a día"}
+        </p>
+        <p className="text-sm text-muted-foreground">{totalProducts} productos encontrados</p>
       </div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {allProducts.map((product) => (
+        {filteredProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

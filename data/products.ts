@@ -8,7 +8,7 @@ import type { Product, Category } from "@/types/product"
 // 4. Selecciona "Valores separados por comas (.csv)" para el formato.
 // 5. Copia la URL generada.
 const GOOGLE_SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vR_YOUR_SHEET_ID_HERE/pub?gid=0&single=true&output=csv" // <-- ¡REEMPLAZA ESTA URL CON LA TUYA!
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfjQvKTAreSEkz5U9YEvH1alcZ8sYX4-FGe2KCfOxK360LDeen34Y1n_pUzQjmBjuyqTAQkAZnJsib/pub?output=csv" // <-- ¡REEMPLAZA ESTA URL CON LA TUYA!
 
 let cachedProducts: Product[] | null = null
 

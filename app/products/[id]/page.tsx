@@ -4,10 +4,11 @@ import Link from "next/link"
 import { getProductById } from "@/data/products"
 import { notFound } from "next/navigation"
 
-// Definimos el tipo de los parámetros directamente en la función
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params // No es necesario 'await params' aquí, params es un objeto directo
-  const productId = Number.parseInt(id)
+// Tipamos params como una Promesa, según el error de Vercel
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  // Resolvemos la promesa de params
+  const resolvedParams = await params
+  const productId = Number.parseInt(resolvedParams.id)
   const product = await getProductById(productId)
 
   if (!product) {
