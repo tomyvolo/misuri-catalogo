@@ -11,7 +11,7 @@ interface CategoryProductsPageProps {
 
 export default async function CategoryProductsPage({ params }: CategoryProductsPageProps) {
   // Await params antes de desestructurarlo
-  const { categorySlug } = params
+  const { categorySlug } = await params
 
   const categories = await getCategories()
   const category = categories.find((cat) => cat.slug === categorySlug)
