@@ -4,11 +4,18 @@ import Link from "next/link"
 import { getProductById } from "@/data/products"
 import { notFound } from "next/navigation"
 
-// Tipamos params como una Promesa, según el error de Vercel
-export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  // Resolvemos la promesa de params
-  const resolvedParams = await params
-  const productId = Number.parseInt(resolvedParams.id)
+// Definimos explícitamente la interfaz para las props de esta página
+interface ProductDetailPageProps {
+  params: Promise<{
+    id: string
+  }>
+  // searchParams es opcional y puede ser útil incluirlo para compatibilidad
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
+  const { id } = await params // params es una Promise en Next.js 15
+  const productId = Number.parseInt(id)
   const product = await getProductById(productId)
 
   if (!product) {

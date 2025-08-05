@@ -2,16 +2,17 @@ import { getProductsByCategory, getCategories } from "@/data/products"
 import { ProductCard } from "@/components/product-card"
 import { notFound } from "next/navigation"
 
+// Definimos explícitamente la interfaz para las props de esta página
 interface CategoryProductsPageProps {
-  params: {
+  params: Promise<{
     categorySlug: string
-  }
-  searchParams?: { [key: string]: string | string[] | undefined }
+  }>
+  // searchParams es opcional y puede ser útil incluirlo para compatibilidad
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export default async function CategoryProductsPage({ params }: CategoryProductsPageProps) {
-  // Await params antes de desestructurarlo
-  const { categorySlug } = await params
+  const { categorySlug } = await params // params es una Promise en Next.js 15
 
   const categories = await getCategories()
   const category = categories.find((cat) => cat.slug === categorySlug)
