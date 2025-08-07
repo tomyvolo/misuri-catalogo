@@ -1,91 +1,66 @@
 import type { Product, Category } from "@/types/product"
+import Papa from "papaparse"
 
-// IMPORTANTE: Reemplaza esta URL con la URL CSV de tu Google Sheet publicada.
-// Cómo obtener esta URL:
-// 1. Abre tu Google Sheet.
-// 2. Ve a Archivo > Compartir > Publicar en la web.
-// 3. Elige la hoja que quieres publicar.
-// 4. Selecciona "Valores separados por comas (.csv)" para el formato.
-// 5. Copia la URL generada.
 const GOOGLE_SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfjQvKTAreSEkz5U9YEvH1alcZ8sYX4-FGe2KCfOxK360LDeen34Y1n_pUzQjmBjuyqTAQkAZnJsib/pub?output=csv" // <-- ¡REEMPLAZA ESTA URL CON LA TUYA!
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRfjQvKTAreSEkz5U9YEvH1alcZ8sYX4-FGe2KCfOxK360LDeen34Y1n_pUzQjmBjuyqTAQkAZnJsib/pub?output=csv"
 
 let cachedProducts: Product[] | null = null
 
 async function fetchProductsFromSheet(): Promise<Product[]> {
-  // Simple caché para evitar múltiples fetches en la misma solicitud del servidor
-  if (cachedProducts) {
-    return cachedProducts
-  }
+  if (cachedProducts) return cachedProducts
 
   try {
     const response = await fetch(GOOGLE_SHEET_CSV_URL)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch sheet data: ${response.statusText}`)
-    }
+    if (!response.ok) throw new Error(`Failed to fetch sheet: ${response.statusText}`)
+
     const csvText = await response.text()
+    const parsed = Papa.parse<string[]>(csvText, {
+      skipEmptyLines: true,
+    })
 
-    const lines = csvText.split("\n").filter((line) => line.trim() !== "")
-    if (lines.length === 0) return []
+    const rows = parsed.data
+    if (!rows || rows.length < 2) return []
 
-    const productsData: Product[] = lines
-      .slice(1)
-      .map((line) => {
-        const parts = line.split(",")
-        if (parts.length < 7) {
-          console.warn("Skipping malformed CSV line:", line)
+    const products: Product[] = (rows.slice(1) as string[][])
+      .map((cols) => {
+        if (cols.length < 7) {
+          console.warn("Línea malformada:", cols)
           return null
         }
 
-        const id = Number.parseInt(parts[0].trim(), 10)
-        const name = parts[1].trim()
-        const price = Number.parseInt(parts[2].trim(), 10)
-        const category = parts[3].trim()
-        const description = parts[4].trim()
+        const id = parseInt(cols[0].trim(), 10)
+        const name = cols[1].trim()
+        const price = parseInt(cols[2].replace("$", "").trim(), 10)
+        const category = cols[3].trim()
+        const description = cols[4].trim()
+        const size = cols[5].trim()
+        const imageUrl = cols[6].trim()
 
-        const size = parts
-          .slice(5, parts.length - 1)
-          .join(",")
-          .trim()
+        if (!id || !name || !price || !category || !description || !size) return null
 
-        const rawImageUrl = parts[parts.length - 1].trim()
-        const imageUrl =
-          rawImageUrl.startsWith("http://") || rawImageUrl.startsWith("https://") || rawImageUrl.startsWith("/")
-            ? rawImageUrl
-            : "/placeholder.svg?height=200&width=200"
-
-        const product: Partial<Product> = {
+        return {
           id,
           name,
           price,
           category,
           description,
           size,
-          image_url: imageUrl,
-        }
-
-        if (
-          product.id &&
-          product.name &&
-          product.price &&
-          product.category &&
-          product.description &&
-          product.size &&
-          product.image_url
-        ) {
-          return product as Product
-        }
-        return null
+          image_url:
+            imageUrl.startsWith("http") || imageUrl.startsWith("/")
+              ? imageUrl
+              : "/placeholder.svg?height=200&width=200",
+        } as Product
       })
-      .filter((p) => p !== null) as Product[]
+      .filter((p): p is Product => p !== null)
 
-    cachedProducts = productsData
-    return productsData
+    cachedProducts = products
+    return products
   } catch (error) {
-    console.error("Error fetching or parsing Google Sheet:", error)
+    console.error("Error fetching/parsing products:", error)
     return []
   }
 }
+
 
 export async function getProducts(): Promise<Product[]> {
   return fetchProductsFromSheet()
